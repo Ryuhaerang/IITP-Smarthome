@@ -18,8 +18,8 @@ from neurokit2.misc._warnings import NeuroKitWarning
 warnings.simplefilter("ignore", NeuroKitWarning)
 warnings.filterwarnings("ignore", message="All-NaN slice encountered")
 
-WESAD_PATH = "/mnt/sting/hjyoon/projects/bymyeyes/dataset/WESAD/raw/WESAD"
-OUT_DIR = "/mnt/sting/hjyoon/projects/agent/data/WESAD"
+WESAD_PATH = "data/WESAD/raw"
+OUT_DIR = "data/processed/wesad"
 SLIDING_WINDOW = 10  # seconds
 ACC_DURATION = 5  # seconds
 EMG_DURATION = 5  # seconds
@@ -483,6 +483,7 @@ def preprocess(user_path):
             signal_pos = signal[pos]
             # different sensors
             for mod in signal_pos.keys():
+                # extract exact slice of raw data
                 mod_name = f"{pos.lower()}_{mod.upper()}"
                 mod_data = signal_pos[mod]
                 duration = DURATION
@@ -523,18 +524,18 @@ def preprocess(user_path):
 def run(path=WESAD_PATH, out_dir=OUT_DIR, num_workers=32):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    info_path = os.path.join(out_dir, "info.json")
-    store_info(info_path)
-    print(f"Saved info to {info_path}")
+    #info_path = os.path.join(out_dir, "info.json")
+    #store_info(info_path)
+    #print(f"Saved info to {info_path}")
     users = glob(os.path.join(path, "S*"))
     all_data = []
     with Pool(processes=num_workers) as pool:
         for user_data in pool.imap_unordered(preprocess, users):
             all_data.extend(user_data)
     dataset = Dataset.from_list(all_data)
-    out_dir = os.path.join(out_dir, "HF")
-    dataset.save_to_disk(out_dir)
-    print(f"Saved dataset to {out_dir}")
+    hf_path = os.path.join(out_dir, "hf_dataset")
+    dataset.save_to_disk(hf_path)
+    print(f"Saved dataset to {hf_path}")
 
 
 if __name__ == "__main__":

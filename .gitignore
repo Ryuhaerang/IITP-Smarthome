@@ -1,0 +1,12 @@
+# Raw dataset directories (e.g., data/WESAD/raw/)
+data/*/raw/
+
+# Processed artifacts
+data/processed/
+!data/processed/.gitkeep
+!data/processed/wesad/.gitkeep
+
+# Python cache files
+__pycache__/
+**/__pycache__/
+*.py[cod]
