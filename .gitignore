@@ -10,3 +10,6 @@ data/processed/
 __pycache__/
 **/__pycache__/
 *.py[cod]
+
+# Experiment outputs
+runs/

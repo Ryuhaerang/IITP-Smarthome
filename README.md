@@ -12,7 +12,7 @@
 - `data/WESAD/raw/` &mdash; raw WESAD dataset.
 - `data/processed/` &mdash; feature-extracted datasets.
 
-## Typical Workflow
+## Usage
 1. **Preprocess WESAD:** `python wesad/preprocess.py run --path data/WESAD/raw --out_dir data/processed/wesad`
 2. **Train / Evaluate:** `python -m scripts.train_wesad`  
    Override settings on the fly, e.g. `python -m scripts.train_wesad --override training.batch_size=128`.

@@ -12,11 +12,11 @@ from wesad.config import ExperimentConfig, parse_config
 from wesad.data import DataPreparationResult, prepare_wesad_data
 from wesad.model import build_model
 from wesad.trainer import Trainer, create_dataloaders
-from wesad.utils import ensure_output_dir, persist_metrics, set_seed
+from wesad.utils import ensure_output_dir, save_metrics, set_seed
 
 
-def resolve_device(preference: Optional[str]) -> torch.device:
-    """Select the training device, honoring 'auto' to prefer CUDA when available."""
+def set_device(preference: Optional[str]) -> torch.device:
+    """Select the training device."""
     if preference is None or preference == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(preference)
@@ -25,7 +25,7 @@ def resolve_device(preference: Optional[str]) -> torch.device:
 def create_optimizer(
     model: nn.Module, learning_rate: float, weight_decay: float
 ) -> torch.optim.Optimizer:
-    """Configure the optimizer; kept separate for easy future swaps (e.g., AdamW)."""
+    """Configure the optimizer."""
     return torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 
@@ -34,7 +34,7 @@ def save_model_checkpoint(
     model: nn.Module,
     data: DataPreparationResult,
 ) -> None:
-    """Persist model weights along with preprocess stats needed for inference."""
+    """Save model weights and relevant stats."""
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -53,7 +53,7 @@ def main() -> None:
     set_seed(config.seed)
 
     prepared_data = prepare_wesad_data(config)
-    device = resolve_device(config.device)
+    device = set_device(config.device)
 
     model = build_model(
         input_dim=prepared_data.train_features.shape[1],
@@ -89,7 +89,6 @@ def main() -> None:
         "splits": prepared_data.subject_splits,
         "dropped_columns": {
             "all_nan": prepared_data.dropped_all_nan,
-            "train_only": prepared_data.dropped_train_nan,
         },
         "num_features": prepared_data.train_features.shape[1],
         "history": fit_result["history"],
@@ -103,7 +102,7 @@ def main() -> None:
     if output_dir:
         ensure_output_dir(output_dir)
         metrics_path = os.path.join(output_dir, config.training.metrics_filename)
-        persist_metrics(metrics_path, results)
+        save_metrics(metrics_path, results)
         print(f"Saved metrics to {metrics_path}")
 
         if config.training.save_model:

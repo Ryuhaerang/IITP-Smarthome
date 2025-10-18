@@ -23,7 +23,6 @@ class DataPreparationResult:
     test_labels: np.ndarray
     feature_columns: List[str]
     dropped_all_nan: List[str]
-    dropped_train_nan: List[str]
     label_to_id: Dict[str, int]
     subject_splits: Dict[str, List[str]]
     imputer: SimpleImputer
@@ -112,24 +111,19 @@ def prepare_wesad_data(config: ExperimentConfig) -> DataPreparationResult:
     val_df = filter_by_users(df, val_users)
     test_df = filter_by_users(df, test_users)
 
-    train_only_nan = [col for col in feature_cols if train_df[col].isna().all()]
-    if train_only_nan:
-        train_df = train_df.drop(columns=train_only_nan)
-        val_df = val_df.drop(columns=train_only_nan)
-        test_df = test_df.drop(columns=train_only_nan)
-        feature_cols = [col for col in feature_cols if col not in train_only_nan]
-
     label_to_id = {label: idx for idx, label in enumerate(config.label_order)}
 
     X_train_raw, y_train = extract_features_and_labels(train_df, feature_cols, label_to_id)
     X_val_raw, y_val = extract_features_and_labels(val_df, feature_cols, label_to_id)
     X_test_raw, y_test = extract_features_and_labels(test_df, feature_cols, label_to_id)
 
+    # fill any remaining NaNs with training-set means 
     imputer = SimpleImputer(strategy="mean")
     X_train_imputed = imputer.fit_transform(X_train_raw)
     X_val_imputed = imputer.transform(X_val_raw)
     X_test_imputed = imputer.transform(X_test_raw)
 
+    # normalize features based on training-set stats
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train_imputed).astype(np.float32)
     X_val = scaler.transform(X_val_imputed).astype(np.float32)
@@ -150,7 +144,6 @@ def prepare_wesad_data(config: ExperimentConfig) -> DataPreparationResult:
         test_labels=y_test,
         feature_columns=list(feature_cols),
         dropped_all_nan=dropped_all_nan,
-        dropped_train_nan=train_only_nan,
         label_to_id=label_to_id,
         subject_splits=subject_splits,
         imputer=imputer,

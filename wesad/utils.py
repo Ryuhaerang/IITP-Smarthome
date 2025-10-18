@@ -24,7 +24,7 @@ def ensure_output_dir(path: str) -> None:
         os.makedirs(path, exist_ok=True)
 
 
-def persist_metrics(path: str, metrics: Dict[str, Any]) -> None:
+def save_metrics(path: str, metrics: Dict[str, Any]) -> None:
     """Write metrics or training history to JSON on disk."""
     with open(path, "w", encoding="utf-8") as fp:
         json.dump(metrics, fp, indent=2)
