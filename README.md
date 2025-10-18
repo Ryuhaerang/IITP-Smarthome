@@ -8,9 +8,9 @@
 
 ## Repository Layout
 - `wesad/` &mdash; preprocessing, data, model, trainer, and config utilities for the WESAD dataset.
-- `scripts/train_wesad.py` &mdash; CLI entry point that loads `wesad/config.yaml`, trains the DNN, and optionally saves metrics/checkpoints.
-- `data/WESAD/raw/` &mdash; raw WESAD dataset (symlink or copy the original release here).
-- `data/processed/` &mdash; feature-extracted datasets (e.g., `wesad/hf_dataset`).
+- `scripts/train_wesad.py` &mdash; CLI entry point that loads `wesad/config.yaml`, trains a model, and saves metrics/checkpoints.
+- `data/WESAD/raw/` &mdash; raw WESAD dataset.
+- `data/processed/` &mdash; feature-extracted datasets.
 
 ## Typical Workflow
 1. **Preprocess WESAD:** `python wesad/preprocess.py run --path data/WESAD/raw --out_dir data/processed/wesad`
@@ -18,5 +18,5 @@
    Override any setting on the fly, e.g. `python scripts/train_wesad.py --override training.batch_size=128`.
 
 ## TODO
-- Document preprocessing/feature schemas for upcoming datasets.
-- Add automated tests for data preparation and training loops.
+- Implement remaining two datasets (TBD).
+- Implement model quantization.
