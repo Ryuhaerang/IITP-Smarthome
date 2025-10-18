@@ -22,3 +22,11 @@ training:
   output_dir: runs/wesad
   save_model: true
   metrics_filename: metrics.json
+
+quantization:
+  enable_int8: true
+  enable_int4: true
+  save_int8_model: true
+  save_int4_model: true
+  int8_model_filename: model_int8.pt
+  int4_model_filename: model_int4.pt

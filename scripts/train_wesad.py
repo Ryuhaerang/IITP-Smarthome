@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI entry point for training/evaluating the WESAD classifier."""
+"""Train, evaluate, and optionally quantize the WESAD classifier."""
 
 import os
 from dataclasses import asdict
@@ -11,12 +11,13 @@ from torch import nn
 from wesad.config import ExperimentConfig, parse_config
 from wesad.data import DataPreparationResult, prepare_wesad_data
 from wesad.model import build_model
+from wesad.quantization import run_quantization
 from wesad.trainer import Trainer, create_dataloaders
-from wesad.utils import ensure_output_dir, save_metrics, set_seed
+from wesad.utils import ensure_output_dir, persist_metrics, set_seed
 
 
-def set_device(preference: Optional[str]) -> torch.device:
-    """Select the training device."""
+def resolve_device(preference: Optional[str]) -> torch.device:
+    """Select training device, preferring CUDA when available."""
     if preference is None or preference == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(preference)
@@ -25,7 +26,7 @@ def set_device(preference: Optional[str]) -> torch.device:
 def create_optimizer(
     model: nn.Module, learning_rate: float, weight_decay: float
 ) -> torch.optim.Optimizer:
-    """Configure the optimizer."""
+    """Configure optimizer; easy swap point if we try different optimizers later."""
     return torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 
@@ -34,7 +35,7 @@ def save_model_checkpoint(
     model: nn.Module,
     data: DataPreparationResult,
 ) -> None:
-    """Save model weights and relevant stats."""
+    """Persist model weights alongside preprocessing statistics needed for inference."""
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -53,7 +54,7 @@ def main() -> None:
     set_seed(config.seed)
 
     prepared_data = prepare_wesad_data(config)
-    device = set_device(config.device)
+    device = resolve_device(config.device)
 
     model = build_model(
         input_dim=prepared_data.train_features.shape[1],
@@ -84,6 +85,18 @@ def main() -> None:
     test_metrics = trainer.evaluate(dataloaders.test, include_report=True)
     print(f"Test accuracy: {test_metrics['accuracy']:.4f}")
 
+    quantization_results = []
+    if config.quantization.enable_int8 or config.quantization.enable_int4:
+        quantization_results = run_quantization(
+            model=model,
+            dataloaders=dataloaders, # just test on test dataset
+            label_order=config.label_order,
+            quant_config=config.quantization,
+            output_dir=config.training.output_dir,
+        )
+        for result in quantization_results:
+            print(f"{result.method} accuracy: {result.accuracy:.4f}")
+
     results = {
         "config": asdict(config),
         "splits": prepared_data.subject_splits,
@@ -97,12 +110,14 @@ def main() -> None:
         },
         "test": test_metrics,
     }
+    if quantization_results:
+        results["quantization"] = [res.to_dict() for res in quantization_results]
 
     output_dir = config.training.output_dir
     if output_dir:
         ensure_output_dir(output_dir)
         metrics_path = os.path.join(output_dir, config.training.metrics_filename)
-        save_metrics(metrics_path, results)
+        persist_metrics(metrics_path, results)
         print(f"Saved metrics to {metrics_path}")
 
         if config.training.save_model:

@@ -47,6 +47,16 @@ class TrainingConfig:
 
 
 @dataclass
+class QuantizationConfig:
+    enable_int8: bool = False
+    enable_int4: bool = False
+    save_int8_model: bool = False
+    save_int4_model: bool = False
+    int8_model_filename: str = "model_int8.pt"
+    int4_model_filename: str = "model_int4.pt"
+
+
+@dataclass
 class ExperimentConfig:
     seed: int = 42
     device: str = "auto"
@@ -55,6 +65,7 @@ class ExperimentConfig:
     model: ModelConfig = field(default_factory=ModelConfig)
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
+    quantization: QuantizationConfig = field(default_factory=QuantizationConfig)
 
 
 def _deep_update_dict(base: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any]:
@@ -141,6 +152,7 @@ def dict_to_dataclass(config_dict: Dict[str, Any]) -> ExperimentConfig:
         model=ModelConfig(**merged.get("model", {})),
         optimizer=OptimizerConfig(**merged.get("optimizer", {})),
         training=TrainingConfig(**merged.get("training", {})),
+        quantization=QuantizationConfig(**merged.get("quantization", {})),
     )
 
 
