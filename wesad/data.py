@@ -1,3 +1,5 @@
+"""Dataset loading, cleaning, and splitting utilities for WESAD features."""
+
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Sequence, Tuple
 
@@ -12,6 +14,7 @@ from wesad.config import ExperimentConfig
 
 @dataclass
 class DataPreparationResult:
+    """Container holding transformed arrays and metadata for training/eval."""
     train_features: np.ndarray
     train_labels: np.ndarray
     val_features: np.ndarray
@@ -28,6 +31,7 @@ class DataPreparationResult:
 
 
 def load_dataset_as_dataframe(dataset_path: str) -> pd.DataFrame:
+    """Load the saved HF dataset and expand the nested feature dict into columns."""
     dataset = load_from_disk(dataset_path)
     df = dataset.to_pandas()
     feature_frame = pd.json_normalize(df["features"])
@@ -38,6 +42,7 @@ def load_dataset_as_dataframe(dataset_path: str) -> pd.DataFrame:
 def drop_nan_columns(
     df: pd.DataFrame, feature_columns: Sequence[str]
 ) -> Tuple[pd.DataFrame, List[str], List[str]]:
+    """Remove columns that are NaN in every row; return remaining feature names."""
     all_nan_cols = [col for col in feature_columns if df[col].isna().all()]
     if all_nan_cols:
         df = df.drop(columns=all_nan_cols)
@@ -48,6 +53,7 @@ def drop_nan_columns(
 def split_by_subject(
     user_ids: Iterable[str], train_frac: float, val_frac: float, seed: int
 ) -> Tuple[List[str], List[str], List[str]]:
+    """Create subject-level splits to avoid leakage between train/val/test."""
     unique_users = sorted(set(user_ids))
     if len(unique_users) < 3:
         raise ValueError("Need at least 3 unique subjects to form train/val/test splits.")
@@ -73,6 +79,7 @@ def split_by_subject(
 
 
 def filter_by_users(df: pd.DataFrame, users: Sequence[str]) -> pd.DataFrame:
+    """Slice the dataframe to only include data from the given user IDs."""
     return df[df["user_id"].isin(users)].reset_index(drop=True)
 
 
@@ -81,6 +88,7 @@ def extract_features_and_labels(
     feature_columns: Sequence[str],
     label_to_id: Dict[str, int],
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Extract numpy arrays of features/labels, validating label coverage."""
     features = df.loc[:, feature_columns].to_numpy(dtype=np.float64)
     labels = df["label"].map(label_to_id)
     if labels.isna().any():
@@ -90,6 +98,7 @@ def extract_features_and_labels(
 
 
 def prepare_wesad_data(config: ExperimentConfig) -> DataPreparationResult:
+    """Full preprocessing pipeline: load, split, impute, scale, and package."""
     df = load_dataset_as_dataframe(config.data.dataset_path)
     feature_cols = [col for col in df.columns if col not in ("user_id", "label")]
 

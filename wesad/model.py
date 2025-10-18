@@ -1,3 +1,5 @@
+"""Model architectures for WESAD experiments."""
+
 from typing import Sequence
 
 from torch import nn
@@ -6,6 +8,8 @@ from wesad.config import ModelConfig
 
 
 class SimpleFeedForward(nn.Module):
+    """Baseline MLP that operates on flattened engineered feature vectors."""
+
     def __init__(
         self, input_dim: int, hidden_sizes: Sequence[int], num_classes: int, dropout: float
     ) -> None:
@@ -22,10 +26,12 @@ class SimpleFeedForward(nn.Module):
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
+        """Run a batch of feature vectors through the MLP."""
         return self.net(x)
 
 
 def build_model(input_dim: int, model_config: ModelConfig, num_classes: int) -> nn.Module:
+    """Factory that instantiates the baseline feed-forward network."""
     return SimpleFeedForward(
         input_dim=input_dim,
         hidden_sizes=model_config.hidden_sizes,

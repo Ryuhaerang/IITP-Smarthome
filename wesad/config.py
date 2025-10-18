@@ -1,3 +1,5 @@
+"""Configuration parsing utilities supporting YAML + CLI overrides."""
+
 import argparse
 import copy
 from dataclasses import asdict, dataclass, field
@@ -56,6 +58,7 @@ class ExperimentConfig:
 
 
 def _deep_update_dict(base: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively update nested dictionaries without mutating the original."""
     merged = copy.deepcopy(base)
     for key, value in updates.items():
         if (
@@ -70,6 +73,7 @@ def _deep_update_dict(base: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str
 
 
 def _parse_override(override: str) -> Dict[str, Any]:
+    """Parse a dot-notation `key=value` string into a nested dict structure."""
     if "=" not in override:
         raise ValueError(f"Override must be in key=value format: {override}")
     key, value = override.split("=", 1)
@@ -87,13 +91,14 @@ def _parse_override(override: str) -> Dict[str, Any]:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the CLI parser for configuration file + override flags."""
     parser = argparse.ArgumentParser(
         description="Train and evaluate a simple DNN on WESAD features."
     )
     parser.add_argument(
         "--config",
         type=str,
-        default="wesad/config.yaml",
+        default="config/wesad/default.yaml",
         help="Path to YAML configuration file.",
     )
     parser.add_argument(
@@ -106,6 +111,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def load_config_from_yaml(path: str) -> Dict[str, Any]:
+    """Load configuration from disk, returning an empty dict if the file is blank."""
     with open(path, "r", encoding="utf-8") as fp:
         return yaml.safe_load(fp) or {}
 
@@ -113,6 +119,7 @@ def load_config_from_yaml(path: str) -> Dict[str, Any]:
 def apply_overrides(
     config_dict: Dict[str, Any], overrides: Optional[List[str]]
 ) -> Dict[str, Any]:
+    """Apply CLI overrides on top of the base configuration dictionary."""
     if not overrides:
         return config_dict
     updated = copy.deepcopy(config_dict)
@@ -123,6 +130,7 @@ def apply_overrides(
 
 
 def dict_to_dataclass(config_dict: Dict[str, Any]) -> ExperimentConfig:
+    """Convert a plain dictionary into the strongly-typed ExperimentConfig."""
     default_config = ExperimentConfig()
     merged = _deep_update_dict(asdict(default_config), config_dict)
     return ExperimentConfig(
@@ -137,6 +145,7 @@ def dict_to_dataclass(config_dict: Dict[str, Any]) -> ExperimentConfig:
 
 
 def parse_config(argv: Optional[List[str]] = None) -> ExperimentConfig:
+    """High-level helper combining YAML load + overrides into ExperimentConfig."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     base_config = load_config_from_yaml(args.config)

@@ -8,14 +8,14 @@
 
 ## Repository Layout
 - `wesad/` &mdash; preprocessing, data, model, trainer, and config utilities for the WESAD dataset.
-- `scripts/train_wesad.py` &mdash; CLI entry point that loads `wesad/config.yaml`, trains a model, and saves metrics/checkpoints.
+- `scripts/train_wesad.py` &mdash; CLI entry point that loads `config/wesad/default.yaml`, trains a model, and saves metrics/checkpoints.
 - `data/WESAD/raw/` &mdash; raw WESAD dataset.
 - `data/processed/` &mdash; feature-extracted datasets.
 
 ## Typical Workflow
 1. **Preprocess WESAD:** `python wesad/preprocess.py run --path data/WESAD/raw --out_dir data/processed/wesad`
-2. **Train / Evaluate:** `python scripts/train_wesad.py`  
-   Override any setting on the fly, e.g. `python scripts/train_wesad.py --override training.batch_size=128`.
+2. **Train / Evaluate:** `python -m scripts.train_wesad`  
+   Override settings on the fly, e.g. `python -m scripts.train_wesad --override training.batch_size=128`.
 
 ## TODO
 - Implement remaining two datasets (TBD).

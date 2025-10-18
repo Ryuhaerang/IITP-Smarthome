@@ -1,3 +1,5 @@
+"""Training helpers wrapping the PyTorch training loop for WESAD models."""
+
 import copy
 from dataclasses import dataclass
 from typing import Dict, List
@@ -13,6 +15,7 @@ from wesad.data import DataPreparationResult
 
 @dataclass
 class DataLoaders:
+    """Grouped dataloaders for train/val/test splits."""
     train: DataLoader
     val: DataLoader
     test: DataLoader
@@ -25,6 +28,7 @@ def _build_dataloader(
     shuffle: bool,
     num_workers: int,
 ) -> DataLoader:
+    """Construct a simple TensorDataset-backed DataLoader from numpy arrays."""
     dataset = TensorDataset(
         torch.from_numpy(features.astype(np.float32)),
         torch.from_numpy(labels.astype(np.int64)),
@@ -41,6 +45,7 @@ def _build_dataloader(
 def create_dataloaders(
     data: DataPreparationResult, batch_size: int, num_workers: int
 ) -> DataLoaders:
+    """Create all dataloaders needed for training/evaluation."""
     train_loader = _build_dataloader(
         data.train_features, data.train_labels, batch_size, True, num_workers
     )
@@ -54,6 +59,8 @@ def create_dataloaders(
 
 
 class Trainer:
+    """Thin wrapper for the training loop, tracking best validation accuracy."""
+
     def __init__(
         self,
         model: nn.Module,
@@ -107,6 +114,7 @@ class Trainer:
         }
 
     def _train_one_epoch(self, loader: DataLoader) -> float:
+        """Run a single training epoch and return the average loss."""
         self.model.train()
         running_loss = 0.0
         batches = 0
@@ -130,6 +138,7 @@ class Trainer:
         loader: DataLoader,
         include_report: bool = True,
     ) -> Dict[str, float]:
+        """Evaluate the model, optionally returning a full classification report."""
         self.model.eval()
         all_preds: List[int] = []
         all_targets: List[int] = []

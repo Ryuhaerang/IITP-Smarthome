@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""CLI entry point for training/evaluating the WESAD classifier."""
 
 import os
 from dataclasses import asdict
@@ -15,14 +16,16 @@ from wesad.utils import ensure_output_dir, persist_metrics, set_seed
 
 
 def resolve_device(preference: Optional[str]) -> torch.device:
-    if preference:
-        return torch.device(preference)
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    """Select the training device, honoring 'auto' to prefer CUDA when available."""
+    if preference is None or preference == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return torch.device(preference)
 
 
 def create_optimizer(
     model: nn.Module, learning_rate: float, weight_decay: float
 ) -> torch.optim.Optimizer:
+    """Configure the optimizer; kept separate for easy future swaps (e.g., AdamW)."""
     return torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 
@@ -31,6 +34,7 @@ def save_model_checkpoint(
     model: nn.Module,
     data: DataPreparationResult,
 ) -> None:
+    """Persist model weights along with preprocess stats needed for inference."""
     torch.save(
         {
             "model_state_dict": model.state_dict(),
