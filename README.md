@@ -15,8 +15,9 @@
 ## Usage
 1. **Preprocess WESAD:** `python wesad/preprocess.py run --path data/WESAD/raw --out_dir data/processed/wesad`
 2. **Train / Evaluate:** `python -m scripts.train_wesad`  
-   Override settings on the fly, e.g. `python -m scripts.train_wesad --override training.batch_size=128`.
-   Enable quantization by editing `config/wesad/default.yaml` (e.g., `quantization.enable_int8: true`).
+   Override settings on the fly, i.e. `python -m scripts.train_wesad --override training.batch_size=128`.
+   Enable quantization by editing `config/wesad/default.yaml` (i,e. `quantization.enable_int8: true`).
+   Run with other configs, i.e. `python -m scripts.train_wesad --config config/wesad/CONFIG_NAME.yaml`.
 
 ## TODO
 - Implement remaining two datasets (TBD).

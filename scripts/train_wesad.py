@@ -55,6 +55,8 @@ def main() -> None:
 
     prepared_data = prepare_wesad_data(config)
     device = resolve_device(config.device)
+    output_dir = config.training.output_dir
+    ensure_output_dir(output_dir)
 
     model = build_model(
         input_dim=prepared_data.train_features.shape[1],
@@ -113,18 +115,14 @@ def main() -> None:
     if quantization_results:
         results["quantization"] = [res.to_dict() for res in quantization_results]
 
-    output_dir = config.training.output_dir
-    if output_dir:
-        ensure_output_dir(output_dir)
-        metrics_path = os.path.join(output_dir, config.training.metrics_filename)
-        persist_metrics(metrics_path, results)
-        print(f"Saved metrics to {metrics_path}")
+    metrics_path = os.path.join(output_dir, config.training.metrics_filename)
+    persist_metrics(metrics_path, results)
+    print(f"Saved metrics to {metrics_path}")
 
-        if config.training.save_model:
-            model_path = os.path.join(output_dir, "model.pt")
-            save_model_checkpoint(model_path, model, prepared_data)
-            print(f"Saved model checkpoint to {model_path}")
-
+    if config.training.save_model:
+        model_path = os.path.join(output_dir, "model.pt")
+        save_model_checkpoint(model_path, model, prepared_data)
+        print(f"Saved model checkpoint to {model_path}")
 
 if __name__ == "__main__":
     main()

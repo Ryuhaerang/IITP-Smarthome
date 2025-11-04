@@ -1,0 +1,32 @@
+seed: 42
+label_order: [baseline, stress, amusement]
+device: auto  # "cuda", "cpu", or "auto"
+
+data:
+  dataset_path: data/processed/wesad/hf_dataset
+  train_frac: 0.8
+  val_frac: 0.1
+
+model:
+  hidden_sizes: [32, 16]
+  dropout: 0.1
+
+optimizer:
+  learning_rate: 0.001
+  weight_decay: 0.0001
+
+training:
+  epochs: 10
+  batch_size: 64
+  num_workers: 0
+  output_dir: runs/wesad_fun
+  save_model: true
+  metrics_filename: metrics.json
+
+quantization:
+  enable_int8: true
+  enable_int4: false
+  save_int8_model: true
+  save_int4_model: false
+  int8_model_filename: model_int8.pt
+  int4_model_filename: model_int4.pt
