@@ -6,7 +6,7 @@ from typing import Dict, List
 
 import numpy as np
 import torch
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -159,9 +159,11 @@ class Trainer:
             batches += 1
 
         accuracy = accuracy_score(all_targets, all_preds)
+        f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
         metrics: Dict[str, float] = {
             "loss": running_loss / max(1, batches),
             "accuracy": float(accuracy),
+            "f1": float(f1),
         }
 
         if include_report:

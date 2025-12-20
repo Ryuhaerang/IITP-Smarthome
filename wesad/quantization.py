@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 from wesad.config import QuantizationConfig
 from wesad.trainer import DataLoaders
@@ -23,6 +23,7 @@ class QuantizationResult:
     method: str
     loss: float
     accuracy: float
+    f1: float
     classification_report: Dict[str, Dict[str, float]]
     model_path: Optional[str] = None
 
@@ -61,6 +62,7 @@ def _evaluate_model(
             all_targets.extend(targets.cpu().numpy().tolist())
 
     accuracy = accuracy_score(all_targets, all_preds)
+    f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
     report = classification_report(
         all_targets,
         all_preds,
@@ -72,6 +74,7 @@ def _evaluate_model(
     return {
         "loss": running_loss / max(1, batches),
         "accuracy": float(accuracy),
+        "f1": float(f1),
         "classification_report": report,
     }
 
@@ -135,6 +138,7 @@ def run_quantization(
                 method="int8_dynamic",
                 loss=metrics["loss"],
                 accuracy=metrics["accuracy"],
+                f1=metrics["f1"],
                 classification_report=metrics["classification_report"],
                 model_path=model_path,
             )
@@ -152,6 +156,7 @@ def run_quantization(
                 method="int4_uniform",
                 loss=metrics["loss"],
                 accuracy=metrics["accuracy"],
+                f1=metrics["f1"],
                 classification_report=metrics["classification_report"],
                 model_path=model_path,
             )

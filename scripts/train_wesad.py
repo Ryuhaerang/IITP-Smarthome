@@ -86,6 +86,7 @@ def main() -> None:
 
     test_metrics = trainer.evaluate(dataloaders.test, include_report=True)
     print(f"Test accuracy: {test_metrics['accuracy']:.4f}")
+    print(f"Test F1 macro score: {test_metrics['f1']:.4f}")
 
     quantization_results = []
     if config.quantization.enable_int8 or config.quantization.enable_int4:
@@ -97,7 +98,7 @@ def main() -> None:
             output_dir=config.training.output_dir,
         )
         for result in quantization_results:
-            print(f"{result.method} accuracy: {result.accuracy:.4f}")
+            print(f"{result.method} accuracy: {result.accuracy:.4f} | F1 macro score: {result.f1:.4f}")
 
     results = {
         "config": asdict(config),

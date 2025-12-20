@@ -18,6 +18,3 @@
    Override settings on the fly, i.e. `python -m scripts.train_wesad --override training.batch_size=128`.
    Enable quantization by editing `config/wesad/default.yaml` (i,e. `quantization.enable_int8: true`).
    Run with other configs, i.e. `python -m scripts.train_wesad --config config/wesad/CONFIG_NAME.yaml`.
-
-## TODO
-- Implement remaining two datasets (TBD).
